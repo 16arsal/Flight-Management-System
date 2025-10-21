@@ -90,7 +90,7 @@ if df(x0) ~= 0
 
     for i = 1:n
 
-        x1=x0-f(x0)/df(x1);
+        x1=x0-f(x0)/df(x0);
         fprintf('x%d = %.4f \n',i,x1);
         
         if abs(x1-x0)<e
@@ -138,3 +138,58 @@ fprintf('+ %.2f\n',F(1))
 
 A = polyval(P,P0);
 disp('Approximate value of given point is : ')
+
+%%
+function [P, coeffs] = lagrange_poly(x_data, y_data)
+    n = length(x_data);
+    syms x;
+
+    P = 0;
+
+    for i = 1:n
+        L = 1;
+        for j = 1:n
+            if i~=j
+                L = L * (x-x_data(j))/(x_data(i) - x_data(j));
+            end
+        end
+        P = P + y_data(i)*L;
+    end
+    P = expand(P);
+    coeffs = sym2poly(P);
+end
+
+%%
+
+x_data = input('Enter the x data points as a vector (e.g. [1 2 3]): ');
+y_data = input('Enter the y data points as a vector (e.g. [4 5 6]): ');
+
+if length(x_data) ~= length(y_data)
+    error('x_data and y_data must have the same length.');
+end
+
+x_points = input('Enter the x values (vector) where you want to evaluate the polynomial (e.g. [1.5 2.5 3.7]): ');
+
+[poly, ~] = lagrange_poly(x_data, y_data);
+
+disp('Symbolic view of polynomial:');
+pretty(poly);
+
+y_points = double(subs(poly, x_points));
+
+figure;
+fplot(poly, [min(x_data)-1, max(x_data)+1], 'LineWidth', 1.5);
+hold on;
+
+stem(x_data, y_data, 'filled', 'b');
+
+stem(x_points, y_points, 'r');
+
+hold off;
+grid on;
+grid minor;
+legend('Lagrange Polynomial', 'Original Data Points', 'Interpolated Points');
+
+for k = 1:length(x_points)
+    fprintf('For x = %.4g, interpolated y = %.4g\n', x_points(k), y_points(k));
+end
