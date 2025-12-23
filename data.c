@@ -193,3 +193,93 @@ legend('Lagrange Polynomial', 'Original Data Points', 'Interpolated Points');
 for k = 1:length(x_points)
     fprintf('For x = %.4g, interpolated y = %.4g\n', x_points(k), y_points(k));
 end
+
+%% lab 6 and 7 
+%% Lagrange Interpolation
+
+X = input('Enter abscissas: ');
+Y = input('Enter ordinates: ');
+P0 = input('Enter the point at which you want approximation: ');
+
+n = length(X);
+L = zeros(n,n);
+
+for i = 1:n        % Loop for each Lagrange basis
+    V = 1;
+    for j = 1:n
+        if i ~= j
+            V = conv(V, poly(X(j))) / (X(i) - X(j));
+        end
+    end
+    L(i,:) = V * Y(i);
+end
+
+P = sum(L);        % Final polynomial coefficients
+F = flip(P);
+
+disp('Interpolating polynomial is:')
+for k = n:-1:2
+    fprintf('+ %.2fx^%d ', F(k), k-1)
+end
+fprintf('+ %.2f\n', F(1))
+
+A = polyval(P, P0);
+disp('Approximate value at given point is:')
+disp(A)
+
+
+%% Newton Forward 
+
+
+x = input('Enter x values: ');
+y = input('Enter y values: ');
+xp = input('Enter x at which y is required: ');
+
+n = length(x);
+h = x(2) - x(1);
+uniform = true;
+
+for i = 2:n-1
+    if abs((x(i+1) - x(i)) - h) > 1e-6
+        uniform = false;
+        break;
+    end
+end
+
+if ~uniform
+    disp('x-values are NOT equally spaced.');
+    disp('Newton Forward Interpolation NOT applicable.');
+    return;
+end
+
+disp('x-values are equally spaced.');
+disp('Applying Newton Forward Interpolation...');
+
+
+D = zeros(n,n);
+D(:,1) = y';
+
+for j = 2:n
+    for i = 1:n-j+1
+        D(i,j) = D(i+1,j-1) - D(i,j-1);
+    end
+end
+
+disp('Forward Difference Table:');
+disp(D);
+
+p = (xp - x(1)) / h;
+yp = D(1,1);
+
+p_term = 1;
+fact = 1;
+
+for i = 1:n-1
+    p_term = p_term * (p - (i-1));
+    fact = fact * i;
+    yp = yp + (p_term/fact) * D(1,i+1);
+end
+
+fprintf('\nFinal Result:\n');
+fprintf('y(%.4f) = %.6f\n', xp, yp);
+
