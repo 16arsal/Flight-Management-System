@@ -1,18 +1,3 @@
-%% Lab 1
-
-x = 5;  % any initial guess
-for n = 1:6
-    x = x/2;
-    fprintf('n=%d, x=%.6f\n', n, x);
-end
-
-x = 0.5;   % any nonzero start
-for n = 1:6
-    x = 2*x;
-    fprintf('n=%d, x=%.6f\n', n, x);
-end
-
-
 %% Lab 2
 
 function root = bisection(f,a,b,tol,maxiter)
