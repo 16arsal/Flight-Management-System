@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <queue>
 #include <cstring>
+#include <string>
 
 // Constants
 #define MAXCITY 30
@@ -135,19 +136,19 @@ void ShowCitiesReachableFrom(const std::vector<FlightType>& flights, const char*
 
 // Function to find the shortest path between two cities using BFS
 bool FindShortestPath(const std::vector<FlightType>& flights, const char* startCity, const char* endCity, std::vector<const char*>& shortestPath) {
-    std::queue<const char*> bfsQueue;
-    std::unordered_map<const char*, const char*> parentMap;
+    std::queue<std::string> bfsQueue;
+    std::unordered_map<std::string, std::string> parentMap;
 
     bfsQueue.push(startCity);
-    parentMap[startCity] = nullptr;
+    parentMap[startCity] = "";
 
     while (!bfsQueue.empty()) {
-        const char* currentCity = bfsQueue.front();
+        std::string currentCity = bfsQueue.front();
         bfsQueue.pop();
 
         for (const auto& flight : flights) {
-            if (strcmp(flight.startCity, currentCity) == 0) {
-                const char* nextCity = flight.endCity;
+            if (currentCity == flight.startCity) {
+                std::string nextCity = flight.endCity;
                 if (parentMap.find(nextCity) == parentMap.end()) {
                     bfsQueue.push(nextCity);
                     parentMap[nextCity] = currentCity;
@@ -156,14 +157,27 @@ bool FindShortestPath(const std::vector<FlightType>& flights, const char* startC
         }
     }
 
+    std::string destination = endCity;
+    if (parentMap.find(destination) == parentMap.end()) {
+        shortestPath.clear();
+        return false;
+    }
+
+    std::vector<std::string> pathStrings;
     shortestPath.clear();
-    const char* current = endCity;
-    while (current != nullptr) {
-        shortestPath.push_back(current);
+    std::string current = destination;
+    while (!current.empty()) {
+        pathStrings.push_back(current);
         current = parentMap[current];
     }
 
-    std::reverse(shortestPath.begin(), shortestPath.end());
+    std::reverse(pathStrings.begin(), pathStrings.end());
+    static std::vector<std::string> stablePathStorage;
+    stablePathStorage = pathStrings;
+
+    for (const auto& city : stablePathStorage) {
+        shortestPath.push_back(city.c_str());
+    }
 
     return !shortestPath.empty();
 }
@@ -184,6 +198,10 @@ void ShowShortestPath(const std::vector<FlightType>& flights, const char* startC
 
 // Placeholder for FindRoute function
 void FindRoute(const std::vector<FlightType>& flights, const char* startCity, const char* endCity) {
+    (void)flights;
+    (void)startCity;
+    (void)endCity;
+
     // Your implementation here
     // This function should find and display a route between two cities
     std::cout << "Functionality for finding a route is not implemented yet.\n";
@@ -193,21 +211,27 @@ void FindRoute(const std::vector<FlightType>& flights, const char* startCity, co
 void MakeReservation(const std::vector<FlightType>& flights, const std::string& firstName, const std::string& lastName, const char* startCity, const char* endCity) {
     // Find the first available reservation slot
     if (reservationCounter < MAXPASSENGERS) {
+        const FlightType* selectedFlight = nullptr;
+        for (const auto& flight : flights) {
+            if (strcmp(flight.startCity, startCity) == 0 && strcmp(flight.endCity, endCity) == 0) {
+                selectedFlight = &flight;
+                break;
+            }
+        }
+
+        if (selectedFlight == nullptr) {
+            std::cout << "No direct flight found from " << startCity << " to " << endCity << ". Reservation was not created.\n";
+            return;
+        }
+
         ReservationType reservation;
         reservation.reservationNo = ++reservationCounter;
         reservation.passengerName = firstName + " " + lastName;
         reservation.startCity = startCity;
         reservation.endCity = endCity;
-
-        // Find the first flight available for the reservation
-        for (const auto& flight : flights) {
-            if (strcmp(flight.startCity, startCity) == 0 && strcmp(flight.endCity, endCity) == 0) {
-                reservation.flightNo = flight.FlightNo;
-                reservation.departureTime = flight.timeDepart;
-                reservation.arrivalTime = flight.timeArrival;
-                break;
-            }
-        }
+        reservation.flightNo = selectedFlight->FlightNo;
+        reservation.departureTime = selectedFlight->timeDepart;
+        reservation.arrivalTime = selectedFlight->timeArrival;
 
         // Add the reservation to the array
         reservations[reservationCounter - 1] = reservation;
@@ -293,12 +317,12 @@ std::vector<std::string> GenerateCityOptions(const std::vector<FlightType>& flig
 int main() {
     // Example flight data
     std::vector<FlightType> flights = {
-        {1, "Karachi", 830, "Islamabad", 950},
-        {2, "Karachi", 930, "Lahore", 1130},
-        {3, "Lahore", 1200, "Islamabad", 1400},
-        {4, "Islamabad", 1400, "Karachi", 1600},
-        {5, "Lahore", 1100, "Karachi", 1230},
-        {6, "Islamabad", 1500, "Lahore", 1630}
+        {1, "Karachi", 830, "Islamabad", 950, nullptr, nullptr},
+        {2, "Karachi", 930, "Lahore", 1130, nullptr, nullptr},
+        {3, "Lahore", 1200, "Islamabad", 1400, nullptr, nullptr},
+        {4, "Islamabad", 1400, "Karachi", 1600, nullptr, nullptr},
+        {5, "Lahore", 1100, "Karachi", 1230, nullptr, nullptr},
+        {6, "Islamabad", 1500, "Lahore", 1630, nullptr, nullptr}
         // Add more flight data as needed
     };
 

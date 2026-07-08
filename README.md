@@ -67,10 +67,10 @@ The main menu supports these actions:
 | `ShowDeparturesForCity(...)` | Filters flights by start city and sorts by departure time. |
 | `ShowArrivalsForCity(...)` | Filters flights by end city and sorts by arrival time. |
 | `ShowCitiesReachableFrom(...)` | Lists unique direct destinations from a city. |
-| `FindShortestPath(...)` | Attempts breadth-first traversal over the flight network. |
+| `FindShortestPath(...)` | Uses breadth-first search over city names to find a hop-count path. |
 | `ShowShortestPath(...)` | Prints the path returned by `FindShortestPath`. |
 | `FindRoute(...)` | Placeholder; currently prints that the functionality is not implemented. |
-| `MakeReservation(...)` | Adds an in-memory reservation for the first matching direct flight. |
+| `MakeReservation(...)` | Adds an in-memory reservation for the first matching direct flight and rejects unsupported city pairs. |
 | `PrintPassengerSchedule(...)` | Finds a reservation by passenger name. |
 | `DeletePassengerReservation(...)` | Removes a matching passenger reservation from the in-memory array. |
 | `PrintPassengersForFlight(...)` | Lists passengers associated with a flight number. |
@@ -91,7 +91,7 @@ For stricter local checking:
 g++ -std=c++17 -Wall -Wextra -pedantic FlightManagementSystem.cpp -o flight_management
 ```
 
-The program compiles under C++17. With warning flags enabled, the current code reports warnings for the placeholder `FindRoute` parameters and missing initializers for unused pointer fields in the hardcoded flight records.
+The program compiles under C++17. The stricter command above is useful for catching issues while the project is still a single-file coursework program.
 
 ## Example Interaction
 
@@ -122,8 +122,8 @@ Flight No: 2, Departure Time: 930, Arrival City: Lahore
 ## Known Limitations
 
 - `FindRoute(...)` is not implemented yet and currently prints a placeholder message.
-- Shortest-path reconstruction is unreliable for user-entered city strings because `FindShortestPath(...)` stores `const char*` keys in an `unordered_map`; pointer identity can differ even when city text matches.
-- `MakeReservation(...)` does not currently reject routes with no matching direct flight, so reservation fields may be left uninitialized for invalid city pairs.
+- `FindShortestPath(...)` returns a simple unweighted city path by number of flight hops; it does not optimize for departure time, arrival time, layovers, or real schedules.
+- Reservations are supported only for direct flights in the hardcoded flight list; connecting-route reservations are not implemented.
 - Reservations are stored only in memory and disappear when the program exits.
 - Flight and city data are hardcoded in `main()` rather than loaded from a file or database.
 - `FlightType` and `CityListType` include linked-list pointer fields, but the current program primarily uses `std::vector` and does not build linked departure/arrival lists.
@@ -135,14 +135,14 @@ Flight No: 2, Departure Time: 930, Arrival City: Lahore
 - How to model a small transportation network with structs.
 - How to use vectors for filtering and sorting records.
 - How graph traversal ideas such as BFS apply to route search.
-- Why string handling choices matter in C++, especially when using raw `const char*` pointers as map keys.
+- Why string handling choices matter in C++, especially when comparing city names and reconstructing paths.
 - How menu-driven console programs can grow into clearer modules as features expand.
 
 ## Future Improvements
 
 - Replace `const char*` city fields with `std::string`.
-- Complete `FindRoute(...)` and fix shortest-path reconstruction.
-- Validate reservations before storing them.
+- Complete `FindRoute(...)`.
+- Add support for connecting-flight reservations.
 - Load flights and cities from external files.
 - Store reservations persistently.
 - Split the program into header/source files.
